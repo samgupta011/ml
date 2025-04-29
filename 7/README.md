@@ -1,155 +1,176 @@
 
-# 🏡 Linear Regression on California Housing Dataset
+# Naive Bayes Classifier - Iris Dataset
 
-This project demonstrates how to apply **Linear Regression** to a real-world dataset using **scikit-learn**. The dataset contains housing data from California, such as average rooms, location data, and income, with the goal of predicting **median house prices**.
+This project demonstrates the implementation of the **Naive Bayes classifier** using the **Iris dataset**. The Naive Bayes model is a probabilistic classifier based on Bayes' Theorem, assuming independence between features. This implementation uses the **Gaussian Naive Bayes** model, which is suited for continuous data.
 
 ---
 
-## 📦 Libraries Required
+## 📦 Requirements
+
+You can install the necessary dependencies using `pip`:
 
 ```bash
-pip install pandas numpy scikit-learn matplotlib
+pip install numpy pandas scikit-learn
 ```
-
-These libraries help in data loading, processing, modeling, and visualization.
 
 ---
 
-## 📁 Step-by-Step Explanation of the Code
+## 🧠 Overview of Naive Bayes Classifier
 
-### 1. **Import Libraries**
+The **Naive Bayes classifier** is a simple probabilistic classifier based on the **Bayes' Theorem** with an assumption of independence between the features. The model computes the probability of each class given the features and predicts the class with the highest probability.
+
+In this implementation, we are using the **Gaussian Naive Bayes** model, which is useful when the features are continuous and follow a normal distribution.
+
+---
+
+## 📁 Code Explanation
+
+### 1. **Importing Libraries**
+
 ```python
-import pandas as pd
 import numpy as np
-from sklearn.datasets import fetch_california_housing
-from sklearn.linear_model import LinearRegression
+import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, r2_score
-import matplotlib.pyplot as plt
+from sklearn.naive_bayes import GaussianNB
+from sklearn import datasets
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 ```
-- Imports all necessary libraries:
-  - `pandas`, `numpy` for data manipulation
-  - `sklearn` for dataset, model, splitting, and evaluation
-  - `matplotlib` for plotting
+
+- We import `numpy` and `pandas` for data manipulation and handling.
+- `train_test_split` from `sklearn.model_selection` is used to split the dataset into training and testing sets.
+- `GaussianNB` from `sklearn.naive_bayes` implements the Naive Bayes classifier for continuous data.
+- `datasets` from `sklearn` provides built-in datasets, such as the Iris dataset.
+- `accuracy_score`, `confusion_matrix`, and `classification_report` are used to evaluate the performance of the model.
 
 ---
 
-### 2. **Load Dataset**
+### 2. **Loading the Dataset**
+
 ```python
-california = fetch_california_housing()
-df = pd.DataFrame(california.data, columns=california.feature_names)
-df['Target'] = california.target
+iris = datasets.load_iris()
 ```
-- Loads the **California Housing** dataset
-- Converts it to a `DataFrame` for easier handling
-- Adds the target variable (house prices)
+
+- The **Iris dataset** is loaded using `datasets.load_iris()`, which contains data about Iris flowers, including four features (sepal length, sepal width, petal length, and petal width) and a target variable (species).
 
 ---
 
-### 3. **View Dataset**
+### 3. **Creating DataFrame**
+
 ```python
-print("🔍 Dataset Preview:")
-print(df.head())
-print("\n📊 Dataset Summary:")
-print(df.describe())
+df = pd.DataFrame(data=iris.data, columns=iris.feature_names)
+df['target'] = iris.target
 ```
-- Prints the first 5 rows and a statistical summary (mean, std, min, etc.)
+
+- A **pandas DataFrame** is created from the Iris dataset, with the feature names as column names. The target class (`species`) is added as a new column.
 
 ---
 
-### 4. **Define Features and Target**
+### 4. **Splitting the Dataset**
+
 ```python
-X = df.drop('Target', axis=1)
-y = df['Target']
+X = df.drop('target', axis=1)
+y = df['target']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 ```
-- `X` contains all independent variables (features)
-- `y` is the dependent variable (house value)
+
+- We separate the features (`X`) and the target variable (`y`).
+- The dataset is split into training (70%) and testing (30%) sets using `train_test_split`.
 
 ---
 
-### 5. **Split the Data**
+### 5. **Training the Naive Bayes Model**
+
 ```python
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+naive_bayes_classifier = GaussianNB()
+naive_bayes_classifier.fit(X_train, y_train)
 ```
-- Splits data into **training (80%)** and **testing (20%)**
-- `random_state=42` ensures reproducibility
+
+- We initialize a **Gaussian Naive Bayes** classifier (`GaussianNB`).
+- The model is trained on the training data (`X_train`, `y_train`).
 
 ---
 
-### 6. **Train the Linear Regression Model**
+### 6. **Making Predictions**
+
 ```python
-model = LinearRegression()
-model.fit(X_train, y_train)
+y_pred = naive_bayes_classifier.predict(X_test)
 ```
-- Initializes and trains a **Linear Regression** model on the training data
+
+- The trained model is used to make predictions on the test data (`X_test`).
 
 ---
 
-### 7. **Predict Using Test Set**
+### 7. **Evaluating the Model**
+
 ```python
-y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, y_pred)
+class_report = classification_report(y_test, y_pred)
 ```
-- Predicts target values for the test dataset
+
+- The **accuracy score** of the model is calculated using `accuracy_score`.
+- The **confusion matrix** is generated to show how well the model performed in each class.
+- The **classification report** provides detailed metrics like precision, recall, and F1-score for each class.
 
 ---
 
-### 8. **Evaluate the Model**
+### 8. **Displaying the Results**
+
 ```python
-r2 = r2_score(y_test, y_pred)
-mse = mean_squared_error(y_test, y_pred)
-rmse = np.sqrt(mse)
-
-print(f"\n📈 R² Score: {r2:.4f}")
-print(f"🧮 Mean Squared Error: {mse:.4f}")
-print(f"📉 Root Mean Squared Error: {rmse:.4f}")
-```
-- **R² Score**: How well the model explains the variance in the target
-- **MSE**: Average squared error between actual and predicted values
-- **RMSE**: Square root of MSE (same unit as target)
-
----
-
-### 9. **Plot Actual vs Predicted Values**
-```python
-plt.figure(figsize=(8, 6))
-plt.scatter(y_test, y_pred, alpha=0.3, color='blue')
-plt.plot([y.min(), y.max()], [y.min(), y.max()], 'r--', lw=2)
-plt.xlabel("Actual Target Values")
-plt.ylabel("Predicted Values")
-plt.title("Actual vs Predicted Values")
-plt.grid(True)
-plt.show()
-```
-- Creates a scatter plot to compare predicted vs actual values
-- Ideal prediction would fall on the red dashed diagonal line
-
----
-
-## 📌 Summary
-
-- This project shows how to train a **simple linear regression model** on real-world housing data.
-- Evaluation metrics like R², MSE, and RMSE provide insights into model performance.
-- Visualization gives an intuitive understanding of prediction quality.
-
----
-
-## 🚀 To Run
-
-1. Clone or download this repository
-2. Install dependencies:
-
-```bash
-pip install pandas numpy scikit-learn matplotlib
+print(f"Accuracy: {accuracy * 100:.2f}%")
+print("\nConfusion Matrix:")
+print(conf_matrix)
+print("\nClassification Report:")
+print(class_report)
 ```
 
-3. Run the script in any Python IDE or Jupyter Notebook.
+- The results, including the accuracy, confusion matrix, and classification report, are printed.
 
 ---
 
-## 📚 Dataset Info
+## 📊 Output
 
-- Dataset: California Housing (from sklearn)
-- Target: Median House Value
-- Features: Income, rooms, bedrooms, population, location, etc.
+The program will display the following outputs for the Iris dataset:
+
+```text
+Accuracy: 97.78%
+
+Confusion Matrix:
+[[14  0  0]
+ [ 0 15  1]
+ [ 0  0 15]]
+
+Classification Report:
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00        14
+           1       1.00      0.94      0.97        16
+           2       0.94      1.00      0.97        15
+
+    accuracy                           0.98        45
+   macro avg       0.98      0.98      0.98        45
+weighted avg       0.98      0.98      0.98        45
+```
 
 ---
+
+## 💡 Key Takeaways
+
+- The **Naive Bayes classifier** is a powerful and simple probabilistic model that assumes conditional independence between features.
+- This implementation uses the **Gaussian Naive Bayes** model, which is ideal for continuous data that is normally distributed.
+- The **Iris dataset** is used here to demonstrate the classification of different species of Iris flowers based on their features.
+
+---
+
+## 🚀 How to Run
+
+1. Install the required dependencies (`numpy`, `pandas`, and `scikit-learn`).
+2. Copy the code into a Python file or a Jupyter notebook.
+3. Run the script, and it will display the output of the Naive Bayes classifier's accuracy, confusion matrix, and classification report.
+
+---
+
+## 👨‍💻 Use Case
+
+This project is useful for understanding how the Naive Bayes classifier works for classification problems. It can be extended to work on other datasets, and the principles demonstrated here can be applied to more complex problems in data science and machine learning.
+
