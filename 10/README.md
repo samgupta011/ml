@@ -1,155 +1,150 @@
 
-# 🏡 Linear Regression on California Housing Dataset
+# Support Vector Machine (SVM) - Iris Dataset
 
-This project demonstrates how to apply **Linear Regression** to a real-world dataset using **scikit-learn**. The dataset contains housing data from California, such as average rooms, location data, and income, with the goal of predicting **median house prices**.
+This project demonstrates the use of **Support Vector Machine (SVM)**, a supervised learning algorithm, to classify the **Iris dataset**. The goal is to classify the Iris flowers into different species based on their sepal and petal measurements.
 
 ---
 
-## 📦 Libraries Required
+## 📦 Requirements
+
+To run the code, install the following Python libraries using the `pip` command:
 
 ```bash
-pip install pandas numpy scikit-learn matplotlib
+pip install numpy pandas scikit-learn matplotlib
 ```
 
-These libraries help in data loading, processing, modeling, and visualization.
+### Libraries:
+- **`numpy`**: Used for numerical operations.
+- **`pandas`**: For data manipulation and handling datasets.
+- **`scikit-learn`**: Machine learning library that includes the SVM classifier and tools for model evaluation.
+- **`matplotlib`**: For visualizing the data and results.
 
 ---
 
-## 📁 Step-by-Step Explanation of the Code
+## 🧠 Overview of SVM (Support Vector Machine)
+
+Support Vector Machine (SVM) is a supervised machine learning algorithm commonly used for classification tasks. The algorithm tries to find a hyperplane that best separates the data points of different classes. SVM is especially effective in high-dimensional spaces, making it a powerful method for complex classification problems.
+
+In this project, we apply SVM to the **Iris dataset**, which consists of 150 samples of Iris flowers from three species: **Setosa**, **Versicolor**, and **Virginica**. The features are sepal length, sepal width, petal length, and petal width.
+
+---
+
+## 🖥️ Code Explanation
 
 ### 1. **Import Libraries**
+
 ```python
-import pandas as pd
 import numpy as np
-from sklearn.datasets import fetch_california_housing
-from sklearn.linear_model import LinearRegression
+import pandas as pd
+from sklearn import datasets
+from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import classification_report, accuracy_score
 import matplotlib.pyplot as plt
 ```
-- Imports all necessary libraries:
-  - `pandas`, `numpy` for data manipulation
-  - `sklearn` for dataset, model, splitting, and evaluation
-  - `matplotlib` for plotting
 
----
+- **`numpy`**: Provides mathematical operations on arrays.
+- **`pandas`**: Used to load and manipulate the dataset.
+- **`datasets`**: Loads built-in datasets (like Iris).
+- **`SVC`**: Implements the Support Vector Classifier for classification tasks.
+- **`train_test_split`**: Used to split the dataset into training and testing sets.
+- **`classification_report`, `accuracy_score`**: Used to evaluate the performance of the model.
+- **`matplotlib`**: For visualizing results.
 
-### 2. **Load Dataset**
+### 2. **Load the Dataset**
+
 ```python
-california = fetch_california_housing()
-df = pd.DataFrame(california.data, columns=california.feature_names)
-df['Target'] = california.target
+iris = datasets.load_iris()
 ```
-- Loads the **California Housing** dataset
-- Converts it to a `DataFrame` for easier handling
-- Adds the target variable (house prices)
 
----
+- Loads the **Iris dataset** containing features such as sepal length, sepal width, petal length, and petal width.
 
-### 3. **View Dataset**
+### 3. **Prepare the Data**
+
 ```python
-print("🔍 Dataset Preview:")
-print(df.head())
-print("\n📊 Dataset Summary:")
-print(df.describe())
+X = iris.data
+y = iris.target
 ```
-- Prints the first 5 rows and a statistical summary (mean, std, min, etc.)
 
----
+- **`X`**: The features of the dataset (sepal length, sepal width, petal length, and petal width).
+- **`y`**: The target labels (species of Iris flowers).
 
-### 4. **Define Features and Target**
-```python
-X = df.drop('Target', axis=1)
-y = df['Target']
-```
-- `X` contains all independent variables (features)
-- `y` is the dependent variable (house value)
+### 4. **Split the Data into Training and Testing Sets**
 
----
-
-### 5. **Split the Data**
 ```python
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 ```
-- Splits data into **training (80%)** and **testing (20%)**
-- `random_state=42` ensures reproducibility
 
----
+- Splits the dataset into training (80%) and testing (20%) sets to evaluate the performance of the model.
 
-### 6. **Train the Linear Regression Model**
+### 5. **Create and Train the SVM Model**
+
 ```python
-model = LinearRegression()
-model.fit(X_train, y_train)
+svm_model = SVC(kernel='linear')
+svm_model.fit(X_train, y_train)
 ```
-- Initializes and trains a **Linear Regression** model on the training data
 
----
+- **`SVC(kernel='linear')`**: Creates a linear Support Vector Classifier model. The kernel is set to 'linear' for a linear decision boundary.
+- **`fit()`**: Trains the SVM model using the training data.
 
-### 7. **Predict Using Test Set**
+### 6. **Make Predictions**
+
 ```python
-y_pred = model.predict(X_test)
+y_pred = svm_model.predict(X_test)
 ```
-- Predicts target values for the test dataset
 
----
+- **`predict()`**: Makes predictions on the test set based on the trained model.
 
-### 8. **Evaluate the Model**
+### 7. **Evaluate the Model**
+
 ```python
-r2 = r2_score(y_test, y_pred)
-mse = mean_squared_error(y_test, y_pred)
-rmse = np.sqrt(mse)
-
-print(f"\n📈 R² Score: {r2:.4f}")
-print(f"🧮 Mean Squared Error: {mse:.4f}")
-print(f"📉 Root Mean Squared Error: {rmse:.4f}")
+print(f"Accuracy: {accuracy_score(y_test, y_pred):.2f}")
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
 ```
-- **R² Score**: How well the model explains the variance in the target
-- **MSE**: Average squared error between actual and predicted values
-- **RMSE**: Square root of MSE (same unit as target)
 
----
+- **`accuracy_score()`**: Prints the accuracy of the model.
+- **`classification_report()`**: Provides a detailed classification report, including precision, recall, and F1-score for each class.
 
-### 9. **Plot Actual vs Predicted Values**
+### 8. **Visualize the Decision Boundary**
+
 ```python
-plt.figure(figsize=(8, 6))
-plt.scatter(y_test, y_pred, alpha=0.3, color='blue')
-plt.plot([y.min(), y.max()], [y.min(), y.max()], 'r--', lw=2)
-plt.xlabel("Actual Target Values")
-plt.ylabel("Predicted Values")
-plt.title("Actual vs Predicted Values")
-plt.grid(True)
+plt.scatter(X_test[:, 0], X_test[:, 1], c=y_pred, cmap='coolwarm', marker='o', edgecolor='k', alpha=0.7)
+plt.title("SVM Classifier - Iris Dataset")
+plt.xlabel(iris.feature_names[0])
+plt.ylabel(iris.feature_names[1])
 plt.show()
 ```
-- Creates a scatter plot to compare predicted vs actual values
-- Ideal prediction would fall on the red dashed diagonal line
+
+- Visualizes the results of the SVM classifier on the test set using the first two features of the Iris dataset (sepal length and sepal width).
 
 ---
 
-## 📌 Summary
+## 📊 Expected Output
 
-- This project shows how to train a **simple linear regression model** on real-world housing data.
-- Evaluation metrics like R², MSE, and RMSE provide insights into model performance.
-- Visualization gives an intuitive understanding of prediction quality.
-
----
-
-## 🚀 To Run
-
-1. Clone or download this repository
-2. Install dependencies:
-
-```bash
-pip install pandas numpy scikit-learn matplotlib
-```
-
-3. Run the script in any Python IDE or Jupyter Notebook.
+- **Accuracy**: The accuracy of the SVM classifier on the test set.
+- **Classification Report**: A report containing precision, recall, F1-score, and support for each class.
+- **Decision Boundary Plot**: A scatter plot showing the classification results of the SVM model.
 
 ---
 
-## 📚 Dataset Info
+## 💡 Key Takeaways
 
-- Dataset: California Housing (from sklearn)
-- Target: Median House Value
-- Features: Income, rooms, bedrooms, population, location, etc.
+- **SVM** is a powerful supervised learning algorithm that performs well on high-dimensional datasets.
+- The **linear kernel** is used here, but SVM can also be applied with non-linear kernels (e.g., RBF).
+- **Evaluation metrics** such as accuracy, precision, recall, and F1-score provide a good understanding of the model's performance.
+- **Visualizations** help to understand how the classifier is performing on the dataset.
 
 ---
+
+## 🚀 How to Run
+
+1. Install the required libraries using the `pip` command mentioned above.
+2. Copy the provided code into a Python file or Jupyter notebook.
+3. Run the script to view the classifier's performance and decision boundary plot.
+
+---
+
+## 👨‍💻 Use Case
+
+Support Vector Machines are widely used for classification tasks in various fields such as image recognition, spam detection, and medical diagnosis. By applying SVM to the Iris dataset, we can classify flower species based on their physical features. This approach can be adapted for other classification problems with numerical or categorical data.
