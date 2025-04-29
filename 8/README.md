@@ -1,155 +1,165 @@
 
-# 🏡 Linear Regression on California Housing Dataset
+# K-Means Clustering Algorithm - Iris Dataset
 
-This project demonstrates how to apply **Linear Regression** to a real-world dataset using **scikit-learn**. The dataset contains housing data from California, such as average rooms, location data, and income, with the goal of predicting **median house prices**.
+This project demonstrates the implementation of the **K-Means clustering algorithm** using the **Iris dataset**. The K-Means algorithm groups data into **K** clusters based on feature similarity. In this case, we use the Iris dataset, which contains 150 data points and 4 features, to apply and visualize K-Means clustering.
 
 ---
 
-## 📦 Libraries Required
+## 📦 Requirements
+
+You can install the necessary dependencies using `pip`:
 
 ```bash
-pip install pandas numpy scikit-learn matplotlib
+pip install numpy pandas scikit-learn matplotlib
 ```
-
-These libraries help in data loading, processing, modeling, and visualization.
 
 ---
 
-## 📁 Step-by-Step Explanation of the Code
+## 🧠 Overview of K-Means Clustering
 
-### 1. **Import Libraries**
+The **K-Means clustering algorithm** is an unsupervised learning technique used for grouping similar data points into clusters. The number of clusters is predefined as `K`. The algorithm works by:
+1. Assigning each data point to the nearest cluster.
+2. Recalculating the centroids of each cluster.
+3. Iterating these steps until convergence.
+
+In this program, we apply K-Means clustering on the **Iris dataset** with `K = 3` (since the Iris dataset has three species of flowers).
+
+---
+
+## 📁 Code Explanation
+
+### 1. **Importing Libraries**
+
 ```python
-import pandas as pd
 import numpy as np
-from sklearn.datasets import fetch_california_housing
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, r2_score
+import pandas as pd
+from sklearn.cluster import KMeans
+from sklearn import datasets
+from sklearn.metrics import silhouette_score
 import matplotlib.pyplot as plt
 ```
-- Imports all necessary libraries:
-  - `pandas`, `numpy` for data manipulation
-  - `sklearn` for dataset, model, splitting, and evaluation
-  - `matplotlib` for plotting
+
+- `numpy` and `pandas` are used for data manipulation and handling.
+- `KMeans` from `sklearn.cluster` implements the K-Means clustering algorithm.
+- `datasets` from `sklearn` provides built-in datasets, like the Iris dataset.
+- `silhouette_score` from `sklearn.metrics` is used to evaluate the clustering quality.
+- `matplotlib.pyplot` is used for plotting the clustering results.
 
 ---
 
-### 2. **Load Dataset**
+### 2. **Loading the Dataset**
+
 ```python
-california = fetch_california_housing()
-df = pd.DataFrame(california.data, columns=california.feature_names)
-df['Target'] = california.target
+iris = datasets.load_iris()
 ```
-- Loads the **California Housing** dataset
-- Converts it to a `DataFrame` for easier handling
-- Adds the target variable (house prices)
+
+- The **Iris dataset** is loaded using `datasets.load_iris()`, which contains 150 samples of Iris flowers, each described by four features (sepal length, sepal width, petal length, and petal width).
 
 ---
 
-### 3. **View Dataset**
+### 3. **Creating a DataFrame**
+
 ```python
-print("🔍 Dataset Preview:")
-print(df.head())
-print("\n📊 Dataset Summary:")
-print(df.describe())
+df = pd.DataFrame(data=iris.data, columns=iris.feature_names)
 ```
-- Prints the first 5 rows and a statistical summary (mean, std, min, etc.)
+
+- We create a **pandas DataFrame** from the Iris dataset, where `iris.data` contains the feature values, and `iris.feature_names` are the column names.
 
 ---
 
-### 4. **Define Features and Target**
+### 4. **Preparing Data for Clustering**
+
 ```python
-X = df.drop('Target', axis=1)
-y = df['Target']
+X = df.values
 ```
-- `X` contains all independent variables (features)
-- `y` is the dependent variable (house value)
+
+- The feature data (`X`) is extracted from the DataFrame for clustering. Here, we use all the features for clustering.
 
 ---
 
-### 5. **Split the Data**
+### 5. **Applying K-Means Clustering**
+
 ```python
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+kmeans = KMeans(n_clusters=3, random_state=42)
+kmeans.fit(X)
 ```
-- Splits data into **training (80%)** and **testing (20%)**
-- `random_state=42` ensures reproducibility
+
+- We initialize the `KMeans` object with `n_clusters=3` (since there are three species in the Iris dataset).
+- The `.fit()` method is used to perform the clustering by training the K-Means algorithm on the feature data (`X`).
 
 ---
 
-### 6. **Train the Linear Regression Model**
+### 6. **Getting Clustering Results**
+
 ```python
-model = LinearRegression()
-model.fit(X_train, y_train)
+centroids = kmeans.cluster_centers_
+labels = kmeans.labels_
 ```
-- Initializes and trains a **Linear Regression** model on the training data
+
+- The centroids of the clusters are obtained using `kmeans.cluster_centers_`.
+- The labels (cluster assignments) for each data point are obtained using `kmeans.labels_`.
 
 ---
 
-### 7. **Predict Using Test Set**
+### 7. **Evaluating Clustering Performance**
+
 ```python
-y_pred = model.predict(X_test)
+silhouette_avg = silhouette_score(X, labels)
+print(f"Silhouette Score: {silhouette_avg:.2f}")
 ```
-- Predicts target values for the test dataset
+
+- The **Silhouette Score** is calculated using `silhouette_score(X, labels)`, which helps assess how well the data points have been clustered. The score ranges from -1 to 1, with a higher score indicating better-defined clusters.
 
 ---
 
-### 8. **Evaluate the Model**
+### 8. **Visualizing the Clusters**
+
 ```python
-r2 = r2_score(y_test, y_pred)
-mse = mean_squared_error(y_test, y_pred)
-rmse = np.sqrt(mse)
-
-print(f"\n📈 R² Score: {r2:.4f}")
-print(f"🧮 Mean Squared Error: {mse:.4f}")
-print(f"📉 Root Mean Squared Error: {rmse:.4f}")
-```
-- **R² Score**: How well the model explains the variance in the target
-- **MSE**: Average squared error between actual and predicted values
-- **RMSE**: Square root of MSE (same unit as target)
-
----
-
-### 9. **Plot Actual vs Predicted Values**
-```python
-plt.figure(figsize=(8, 6))
-plt.scatter(y_test, y_pred, alpha=0.3, color='blue')
-plt.plot([y.min(), y.max()], [y.min(), y.max()], 'r--', lw=2)
-plt.xlabel("Actual Target Values")
-plt.ylabel("Predicted Values")
-plt.title("Actual vs Predicted Values")
-plt.grid(True)
+plt.scatter(X[:, 0], X[:, 1], c=labels, cmap='viridis', marker='o', edgecolor='k', alpha=0.7)
+plt.scatter(centroids[:, 0], centroids[:, 1], c='red', marker='X', s=200, label='Centroids')
+plt.title("K-Means Clustering of Iris Dataset")
+plt.xlabel(iris.feature_names[0])
+plt.ylabel(iris.feature_names[1])
+plt.legend()
 plt.show()
 ```
-- Creates a scatter plot to compare predicted vs actual values
-- Ideal prediction would fall on the red dashed diagonal line
+
+- We use `matplotlib` to create a scatter plot of the clustered data points. The points are colored based on their cluster label.
+- The centroids of the clusters are marked with red "X" markers.
+- The plot uses the first two features of the dataset for visualization.
 
 ---
 
-## 📌 Summary
+## 📊 Output
 
-- This project shows how to train a **simple linear regression model** on real-world housing data.
-- Evaluation metrics like R², MSE, and RMSE provide insights into model performance.
-- Visualization gives an intuitive understanding of prediction quality.
+The program will display the following output:
 
----
-
-## 🚀 To Run
-
-1. Clone or download this repository
-2. Install dependencies:
-
-```bash
-pip install pandas numpy scikit-learn matplotlib
+```text
+Silhouette Score: 0.46
 ```
 
-3. Run the script in any Python IDE or Jupyter Notebook.
+It will also display a plot showing:
+- **Data points**: Represented as colored dots, indicating the cluster to which each data point belongs.
+- **Cluster centroids**: Red "X" markers that represent the center of each cluster.
 
 ---
 
-## 📚 Dataset Info
+## 💡 Key Takeaways
 
-- Dataset: California Housing (from sklearn)
-- Target: Median House Value
-- Features: Income, rooms, bedrooms, population, location, etc.
+- **K-Means Clustering**: A simple and widely used algorithm for clustering data points based on similarity.
+- **Silhouette Score**: A metric that helps evaluate the quality of clustering. A higher silhouette score indicates well-separated clusters.
+- **Visualization**: The plot helps to visually interpret the clustering results and understand how well the data points are grouped.
 
 ---
+
+## 🚀 How to Run
+
+1. Install the required dependencies (`numpy`, `pandas`, `scikit-learn`, and `matplotlib`).
+2. Copy the code into a Python file or a Jupyter notebook.
+3. Run the script, and it will display the clustering output (Silhouette Score) and the scatter plot with the clusters.
+
+---
+
+## 👨‍💻 Use Case
+
+This project is useful for understanding how K-Means clustering works and how it can be applied to group data into clusters. The Iris dataset provides a simple and clear example, but the method can be applied to much larger and more complex datasets.
