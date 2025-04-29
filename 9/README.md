@@ -1,155 +1,151 @@
 
-# 🏡 Linear Regression on California Housing Dataset
+# Agglomerative Clustering - Iris Dataset
 
-This project demonstrates how to apply **Linear Regression** to a real-world dataset using **scikit-learn**. The dataset contains housing data from California, such as average rooms, location data, and income, with the goal of predicting **median house prices**.
+This project demonstrates the use of **Agglomerative Clustering**, a hierarchical clustering technique, on the **Iris dataset** using Python. The goal is to group similar data points into clusters without using predefined labels. The Agglomerative Clustering algorithm is applied to cluster the Iris dataset into 3 groups (as there are three types of Iris flowers in the dataset).
 
 ---
 
-## 📦 Libraries Required
+## 📦 Requirements
+
+To run the code, install the following Python libraries using the `pip` command:
 
 ```bash
-pip install pandas numpy scikit-learn matplotlib
+pip install numpy pandas scikit-learn matplotlib scipy
 ```
 
-These libraries help in data loading, processing, modeling, and visualization.
+### Libraries:
+- **`numpy`**: Used for numerical operations.
+- **`pandas`**: For data manipulation and handling datasets.
+- **`scikit-learn`**: Machine learning library that includes the `AgglomerativeClustering` algorithm.
+- **`matplotlib`**: For plotting graphs and visualizing clustering results.
+- **`scipy`**: For hierarchical clustering and generating dendrograms.
 
 ---
 
-## 📁 Step-by-Step Explanation of the Code
+## 🧠 Overview of Agglomerative Clustering
+
+Agglomerative Clustering is a **bottom-up** hierarchical clustering algorithm. Initially, each data point is considered as its own cluster. The algorithm then merges the closest clusters iteratively until a stopping condition (e.g., the desired number of clusters) is met. In this project, **Agglomerative Clustering** is applied to the Iris dataset, which contains 150 samples of Iris flowers with 4 features each: sepal length, sepal width, petal length, and petal width.
+
+---
+
+## 🖥️ Code Explanation
 
 ### 1. **Import Libraries**
+
 ```python
-import pandas as pd
 import numpy as np
-from sklearn.datasets import fetch_california_housing
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, r2_score
+import pandas as pd
+from sklearn.cluster import AgglomerativeClustering
+from sklearn import datasets
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from scipy.cluster.hierarchy import dendrogram, linkage
 ```
-- Imports all necessary libraries:
-  - `pandas`, `numpy` for data manipulation
-  - `sklearn` for dataset, model, splitting, and evaluation
-  - `matplotlib` for plotting
 
----
+- **`numpy`**: Provides mathematical operations on arrays.
+- **`pandas`**: Used to load and manipulate the dataset in DataFrame format.
+- **`AgglomerativeClustering`**: Implements the agglomerative clustering algorithm.
+- **`datasets`**: Loads built-in datasets (like Iris).
+- **`StandardScaler`**: Standardizes features to ensure they are on the same scale.
+- **`dendrogram` & `linkage`**: Used for plotting the hierarchical clustering process.
 
-### 2. **Load Dataset**
+### 2. **Load the Dataset**
+
 ```python
-california = fetch_california_housing()
-df = pd.DataFrame(california.data, columns=california.feature_names)
-df['Target'] = california.target
+iris = datasets.load_iris()
 ```
-- Loads the **California Housing** dataset
-- Converts it to a `DataFrame` for easier handling
-- Adds the target variable (house prices)
 
----
+- Loads the **Iris dataset** containing features such as sepal length, sepal width, petal length, and petal width.
 
-### 3. **View Dataset**
+### 3. **Prepare the Data**
+
 ```python
-print("🔍 Dataset Preview:")
-print(df.head())
-print("\n📊 Dataset Summary:")
-print(df.describe())
+df = pd.DataFrame(data=iris.data, columns=iris.feature_names)
+X = df.values
 ```
-- Prints the first 5 rows and a statistical summary (mean, std, min, etc.)
 
----
+- Converts the Iris dataset into a pandas DataFrame and extracts the feature values into `X` for clustering.
 
-### 4. **Define Features and Target**
+### 4. **Standardizing the Data**
+
 ```python
-X = df.drop('Target', axis=1)
-y = df['Target']
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
 ```
-- `X` contains all independent variables (features)
-- `y` is the dependent variable (house value)
 
----
+- **StandardScaler**: Standardizes the data by removing the mean and scaling to unit variance, ensuring that all features contribute equally to the distance calculation in the clustering algorithm.
 
-### 5. **Split the Data**
+### 5. **Perform Agglomerative Clustering**
+
 ```python
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+agg_clust = AgglomerativeClustering(n_clusters=3, linkage='ward')
+labels = agg_clust.fit_predict(X_scaled)
 ```
-- Splits data into **training (80%)** and **testing (20%)**
-- `random_state=42` ensures reproducibility
 
----
+- **`AgglomerativeClustering`**: Performs clustering with **3 clusters**. The `ward` linkage method minimizes the variance of merged clusters and is often preferred when clustering numerical data.
 
-### 6. **Train the Linear Regression Model**
+### 6. **Display the Cluster Labels**
+
 ```python
-model = LinearRegression()
-model.fit(X_train, y_train)
+print("Cluster labels for each data point:")
+print(labels)
 ```
-- Initializes and trains a **Linear Regression** model on the training data
 
----
+- Prints the cluster labels assigned to each data point.
 
-### 7. **Predict Using Test Set**
+### 7. **Plot the Dendrogram**
+
 ```python
-y_pred = model.predict(X_test)
-```
-- Predicts target values for the test dataset
-
----
-
-### 8. **Evaluate the Model**
-```python
-r2 = r2_score(y_test, y_pred)
-mse = mean_squared_error(y_test, y_pred)
-rmse = np.sqrt(mse)
-
-print(f"\n📈 R² Score: {r2:.4f}")
-print(f"🧮 Mean Squared Error: {mse:.4f}")
-print(f"📉 Root Mean Squared Error: {rmse:.4f}")
-```
-- **R² Score**: How well the model explains the variance in the target
-- **MSE**: Average squared error between actual and predicted values
-- **RMSE**: Square root of MSE (same unit as target)
-
----
-
-### 9. **Plot Actual vs Predicted Values**
-```python
-plt.figure(figsize=(8, 6))
-plt.scatter(y_test, y_pred, alpha=0.3, color='blue')
-plt.plot([y.min(), y.max()], [y.min(), y.max()], 'r--', lw=2)
-plt.xlabel("Actual Target Values")
-plt.ylabel("Predicted Values")
-plt.title("Actual vs Predicted Values")
-plt.grid(True)
+linked = linkage(X_scaled, 'ward')
+plt.figure(figsize=(10, 7))
+dendrogram(linked)
+plt.title('Dendrogram for Agglomerative Clustering')
+plt.xlabel('Data points')
+plt.ylabel('Euclidean distance')
 plt.show()
 ```
-- Creates a scatter plot to compare predicted vs actual values
-- Ideal prediction would fall on the red dashed diagonal line
 
----
+- **Dendrogram**: A tree-like diagram that shows how clusters are merged at each step in the hierarchical process. The y-axis represents the Euclidean distance at which clusters are merged.
 
-## 📌 Summary
+### 8. **Visualize the Clustering Results**
 
-- This project shows how to train a **simple linear regression model** on real-world housing data.
-- Evaluation metrics like R², MSE, and RMSE provide insights into model performance.
-- Visualization gives an intuitive understanding of prediction quality.
-
----
-
-## 🚀 To Run
-
-1. Clone or download this repository
-2. Install dependencies:
-
-```bash
-pip install pandas numpy scikit-learn matplotlib
+```python
+plt.scatter(X_scaled[:, 0], X_scaled[:, 1], c=labels, cmap='viridis', marker='o', edgecolor='k', alpha=0.7)
+plt.title("Agglomerative Clustering of Iris Dataset")
+plt.xlabel(iris.feature_names[0])
+plt.ylabel(iris.feature_names[1])
+plt.show()
 ```
 
-3. Run the script in any Python IDE or Jupyter Notebook.
+- Creates a scatter plot of the first two features of the Iris dataset (sepal length and sepal width) and colors the data points based on their cluster labels.
 
 ---
 
-## 📚 Dataset Info
+## 📊 Expected Output
 
-- Dataset: California Housing (from sklearn)
-- Target: Median House Value
-- Features: Income, rooms, bedrooms, population, location, etc.
+- **Cluster Labels**: The cluster labels are printed for each data point in the dataset.
+- **Dendrogram**: A hierarchical tree is plotted showing how the clusters are formed.
+- **Scatter Plot**: A scatter plot visualizing how the dataset is divided into clusters using Agglomerative Clustering.
 
 ---
+
+## 💡 Key Takeaways
+
+- **Agglomerative Clustering** is a **bottom-up** clustering algorithm that merges clusters based on distance.
+- The **dendrogram** is a powerful tool to visualize the hierarchical nature of the clustering process.
+- Standardizing the data is essential for ensuring that the clustering algorithm performs optimally.
+- The results can be visualized using scatter plots to understand how the data points are grouped.
+
+---
+
+## 🚀 How to Run
+
+1. Install the required libraries using the `pip` command mentioned above.
+2. Copy the provided code into a Python file or Jupyter notebook.
+3. Run the script to view the clustering results, dendrogram, and scatter plot.
+
+---
+
+## 👨‍💻 Use Case
+
+Agglomerative Clustering is an unsupervised machine learning technique commonly used to group similar data points without prior labels. This technique is applied to the Iris dataset, but it can be adapted for other datasets with numerical features. The results can be used in various fields like customer segmentation, document clustering, and more.
